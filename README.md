@@ -1,2 +1,2 @@
-# ee5450-module1-practice0
-Python primer practice assignment
+# ee5450-module1-hw0
+Python primer homework assignment
