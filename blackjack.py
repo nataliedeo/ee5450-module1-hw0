@@ -200,7 +200,7 @@ class Blackjack(object):
         print(f"Dealer: {self._dealer_stack[0]}")
 
     def print_dealer_full(self):
-        print(f"Dealer: {''.join([str(card) for card in self._dealer_stack])}"
+        print(f"Dealer: {''.join([str(card) for card in self._dealer_stack])}",
               f" at sum {self._calculate_stack_sum(self._dealer_stack)}")
 
     def print_player_stack(self, player_idx: int):
