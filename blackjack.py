@@ -2,7 +2,6 @@ import logging
 from typing import List, Union, Tuple
 import random
 from dataclasses import dataclass
-import numpy as np
 
 #################################################################################
 # EE 5450 Module 1 Homework 0
@@ -25,6 +24,30 @@ BLACKJACK_INSTRUCTIONS = {
         'DEALER_HIT': 'Dealer hit and drew a',
         'DEALER_STAY': 'Dealer stays at',
         'PLAY_AGAIN': 'Type y to play another game: '
+    },
+    'Fiji Hindi': {
+        'WELCOME': 'Au Blackjack kehlo!',
+        'NUM_PLAYERS': 'Kehtna kehle? ',
+        'NUM_DECKS': 'Kehtna deck manta? ',
+        'START': 'Ab hum lon kehlega... ',
+        'PLAYER_INST': 'Liko h ek aur lo neto s kuch nahi karo.',
+        'PLAYER_HIT': 'Ek aur lo aur lelia ek',
+        'PLAYER_STAY': 'Kuch nahi karo.',
+        'DEALER_HIT': 'Dealer ek aur lais ahbi aur lelise ek',
+        'DEALER_STAY': 'Dealer kuch nai kare abhi.',
+        'PLAY_AGAIN': 'Liko y ek aur baar kehlo: '
+    },
+    'Spanish': {
+        'WELCOME': 'Bienvenidos a Blackjack!',
+        'NUM_PLAYERS': '¿Cuantos jugadores? ',
+        'NUM_DECKS': '¿Cuantos barajas de cartes? ',
+        'START': 'Comenza... ',
+        'PLAYER_INST': 'Escribe hache a golpear o ese a permanecer.',
+        'PLAYER_HIT': 'Eligio a golpear y obtene un/una',
+        'PLAYER_STAY': 'Eligio a permanecer a.',
+        'DEALER_HIT': 'Distribuidor golpea y obtene un/una',
+        'DEALER_STAY': 'Distribuidor permanece a',
+        'PLAY_AGAIN': 'Escribe i greiga a jugar el juego otra ves: '
     },
     # TODO: add another language here for fun! Feel free to use Google Translate.
 }
@@ -80,11 +103,16 @@ class Blackjack(object):
     def _create_stack(self, num_decks: int) -> List[Card]:
         """
         Creates the stack of the cards (52 * num_decks), shuffled.
-
         :param num_decks: number of decks to use
         :return: stack of all card objects, shuffled.
         """
-        pass
+        for s in self._SUITS:
+            for i in range(1, 13):
+                self._card_stack.append(Card(s, i))
+
+        random.shuffle(self._card_stack)
+
+        return self._card_stack
 
     def calculate_optimal_ace_sum(self, number_of_ace_cards: int, current_sum: int,
                                   target_sum: int) -> int:
@@ -96,7 +124,20 @@ class Blackjack(object):
         :param target_sum: target sum after ace cards
         :return: the optimal Ace-only sum to use
         """
-        pass
+        k = 0
+        optimal_ace_sum = 0
+
+        number_of_ace_cards = self._player_stacks.count(1)  # Unsure how correct this is AAAAAAA
+        target_sum = 21 - current_sum
+
+        while k <= number_of_ace_cards:
+            if target_sum / 11 >= 1:
+                optimal_ace_sum += 11
+            else:
+                optimal_ace_sum += 1
+            k += 1
+
+        return optimal_ace_sum
 
     def _calculate_no_aces(self, stack: List[int]) -> int:
         """
@@ -105,7 +146,16 @@ class Blackjack(object):
         :param stack: List of all the card numbers without Aces
         :return: Sum of clipped cards (clipped to self._MAX_ROYALTY)
         """
-        pass
+        k = 0
+        curr_sum = 0
+
+        while k <= len(stack):
+            if stack[k] > self._MAX_ROYALTY:
+                curr_sum = curr_sum + self._MAX_ROYALTY
+            elif stack[k] > 1:
+                curr_sum = curr_sum + stack[k]
+
+        return curr_sum
 
     def _calculate_stack_sum(self, stack: List[Card]) -> int:
         """
@@ -114,39 +164,56 @@ class Blackjack(object):
         :param stack: List of Card objects to calculate the sum with
         :return: The sum that minimizes the distance to optimal_sum
         """
-        pass
+        no_aces = Blackjack._calculate_no_aces(self, stack)
+        only_aces = Blackjack.calculate_optimal_ace_sum(self, stack)
+
+        stack_sum = no_aces + only_aces
+
+        return stack_sum
 
     def _draw_card(self) -> Card:
         """
         Draw a card from the main stack.
-
         :return: Card object
         """
-        pass
+        new_card = self._card_stack.pop(0)
+
+        return new_card
 
     def _dealer_draw(self, silent: bool = False) -> bool:
         """
         Play the dealer, which is forced to stay at 17.
-
         :param silent: True if this is a silent draw (no logging).
         :return: dealer is done hitting.
         """
-        pass
+        dealer_stack = self.Blackjack._dealer_stack
+        dealer_sum = Blackjack._calculate_stack_sum(self, self.Blackjack._dealer_stack)
+
+        if [dealer_sum] < 17:
+            draw_card = self._card_stack.pop(0)
+            dealer_stack.append(draw_card)
+
+        if not silent:
+            print(draw_card)
+
+        return silent
 
     def _player_draw(self, player_idx: int) -> Card:
         """
-        Draw a card for the player.
-
         :param player_idx:  The player to which a card should be drawn
         :return: The drawn card (already placed in the player's stack)
         """
-        pass
+        player_stack = self._player_stacks[player_idx]
+
+        draw_card = self._card_stack.pop(0)
+        player_stack[player_idx].append(draw_card)
+
+        return draw_card
 
     def _player_choice(self, player_idx: int) -> bool:
         """
         Ask player for the choice.
 
-        :param player_idx:
         :return: player is done hitting
         """
         player_input = 'g'
@@ -166,6 +233,17 @@ class Blackjack(object):
 
         :return: (dealer_sum, [player_sum])
         """
+        m = 0
+        player_sum = []
+
+        dealer_sum = self._calculate_stack_sum(self._dealer_stack)
+
+        while m <= self._num_players:
+            player_sum[m] = self._calculate_stack_sum(self, self._player_stack)
+            m += 1
+
+        return dealer_sum, player_sum
+
         pass
 
     def _compute_winner(self, dealer_sum: int, player_sum: int) -> str:
@@ -179,13 +257,20 @@ class Blackjack(object):
         Player wins if:
         - Player has a higher sum than the dealer but is <= 21
 
-        No one wins if both player and dealer have 21 or match.
+        No one wins if both player and dealer have 21.
 
         :param dealer_sum: optimal sum of the dealer's stack
         :param player_sum: optimal sum of the player's stack
         :return: the winner: 'NONE', 'DEALER', or 'PLAYER'
         """
-        pass
+        if dealer_sum == 21 and player_sum != 21:
+            return 'DEALER'
+        elif player_sum > dealer_sum and player_sum <= 21:
+            return 'PLAYER'
+        elif player_sum == 21 and dealer_sum == 21:
+            return 'NONE'
+        else:
+            return 'ERROR'
 
     def _compute_winners(self) -> List[str]:
         """
@@ -215,7 +300,26 @@ class Blackjack(object):
         2. Silent dealer draw.
         3. Draws twice for each player.
         """
-        pass
+        draw_card_list = self._card_stack
+        draw_card = draw_card_list[0]
+
+        if len(self._card_stack) > 1:
+            # Add card to dealer stack and announce
+            draw_card = self._card_stack.pop(0)
+            self._dealer_stack.append(draw_card)
+            Blackjack.print_dealer_single(self)
+
+            # Add card to dealer stack silently
+            draw_card = self._card_stack.pop(0)
+            self._dealer_stack.append(draw_card)
+
+            # Add card to each player stack and announce
+            for _ in range(self._num_players):
+                draw_card = self._card_stack.pop(0)
+                self.player_stack[_].append(draw_card)
+                draw_card = self._card_stack.pop(0)
+                self.player_stack[_].append(draw_card)
+                Blackjack.print_player_stack(self, _)
 
     def run(self):
         print(BLACKJACK_INSTRUCTIONS['English']['START'])
@@ -223,11 +327,10 @@ class Blackjack(object):
         self.print_dealer_single()
         while not all(self._player_dones):
             for player_idx in range(self._num_players):
-                if not self._player_dones[player_idx]:
-                    if self._current_turn < 1:
-                        self.print_player_stack(player_idx)
-                    self._player_dones[player_idx] = self._player_choice(player_idx)
+                if self._current_turn < 1:
                     self.print_player_stack(player_idx)
+                self._player_dones[player_idx] = self._player_choice(player_idx)
+                self.print_player_stack(player_idx)
             self._current_turn += 1
         while not self._dealer_draw():
             self.print_dealer_full()
